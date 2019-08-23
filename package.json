@@ -10,6 +10,7 @@
     "core-js": "^2.6.5",
     "geojson-polyline": "^1.0.3",
     "ol": "^5.3.3",
+    "ol-ext": "^3.1.5",
     "vue": "^2.6.10",
     "vue-resource": "^1.5.1",
     "vuelayers": "^0.11.4"

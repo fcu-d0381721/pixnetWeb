@@ -4,18 +4,22 @@
 
 <script>
 
+import Event from '../bus.js'
 import "ol/ol.css";
 import { Map, View } from "ol";
-import TileLayer from "ol/layer/Tile";
-import OSM from "ol/source/OSM";
+import {Fill, Stroke, Style, Text} from 'ol/style.js';
+import {Cluster, OSM, Vector as VectorSource} from 'ol/source.js';
+import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer.js';
+import AnimatedCluster from 'ol-ext/layer/AnimatedCluster';
 import GeoJSON from 'ol/format/GeoJSON';
-import VectorSource from "ol/source/Vector";
-import VectorLayer from "ol/layer/Vector";
-import Style from "ol/style/Style";
-import Fill from "ol/style/Fill";
-import Stroke from "ol/style/Stroke";
-import TileGrid from "ol/tilegrid/TileGrid";
 import data from '../assets/100_103_mapcode.json';
+import spot from '../assets/spot.json';
+import spoth from '../assets/spotf.json';
+import result from '../assets/results.json';
+import Feature from 'ol/Feature';
+import Point from 'ol/geom/Point';
+import Circle from 'ol/style/Circle';
+
 
 export default {
   props: ['btnName'],  
@@ -49,17 +53,18 @@ export default {
     this.map = new Map({
       target: "map",
       layers: [
-        osm,vectorLayer3
+        osm,vectorLayer3,
       ],
       view: new View({
         projection: "EPSG:4326", 
-        center: [121, 23.5], 
-        zoom: 8
+        center: [121, 23.6], 
+        zoom: 8.2
       })
     });
-    
   },watch: {
     btnName: function () {
+      Event.$emit('post', spot['features']);
+
       var features = this.vSource3.getFeatures();
       for (var i = 0;i<features.length;i++) {	
         if(features[i].get("mapcode")==this.btnName){
@@ -73,12 +78,149 @@ export default {
         }
       }
     }
-  },
+  },created() {
+    Event.$on('PostCheckValue', (data)=>{
+      console.log(data);
+      var ts = [];
+      var t = new GeoJSON().readFeatures(spot);
+      for (var i = 0;i<t.length;i++) {	
+        if(t[i].get("C_x") == data){
+          ts.push(t[i]);
+        }
+      }
+      var spotFeature = new VectorSource({
+        features: ts
+      });
+      var spotLayer = new VectorLayer({
+          source: spotFeature,
+          style: new Style({
+            image: new Circle({
+              radius: 5,
+              stroke: new Stroke({
+                color: 'black'
+              }),
+              fill: new Fill({
+                color: 'pink'
+              })
+            })
+          })
+      });
+      var th = [];
+      var h = new GeoJSON().readFeatures(spoth);
+      for (var i = 0;i<h.length;i++) {	
+        if(h[i].get("C_x") == data){
+          th.push(h[i]);
+        }
+      }
+      var spothFeature = new VectorSource({
+        features: th
+      });
+      var spothLayer = new VectorLayer({
+          source: spothFeature,
+          style: new Style({
+            image: new Circle({
+              radius: 5,
+              stroke: new Stroke({
+                color: 'black'
+              }),
+              fill: new Fill({
+                color: 'orange'
+              })
+            })
+          })
+      });
+
+
+      Event.$emit('getinfo', [ts,th]);
+      var tc = [];
+      var c = new GeoJSON().readFeatures(result);
+      for (var i = 0;i<c.length;i++) {	
+        if(c[i].get("C_x") == data){
+          tc.push(c[i]);
+        }
+      }
+      
+      var clusterFeature = new VectorSource({
+          features: tc
+      });
+      var clusterSource = new Cluster({
+        distance: 100,
+        source: clusterFeature
+      });
+      var styleCache = {};
+      var clusters = new AnimatedCluster({
+        source: clusterSource,
+        animationDuration: 700,
+        style: function (feature) {
+            var size = feature.get('features').length;
+                var style = styleCache[size];
+                if (!style){	
+                    var color = size>3000 ? "255,0,0" : size>800 ? "247,80,0" : size>100 ? "255,146,36" : size>50 ? "255,211,6": "130,217,0";
+                    var radius = Math.max(8, Math.min(8*0.75, 20));
+                    style = styleCache[size] = new Style(
+                        {	image: new Circle(
+                            {	radius: radius,
+                                stroke: new Stroke(
+                                {	color: "rgba("+color+",0.5)", 
+                                    width: 15 ,
+                                    //lineDash: dash,
+                                    lineCap: "butt"
+                                }),
+                                fill: new Fill(
+                                {	color:"rgba("+color+",1)"
+                                })
+                            }),
+                            text: new Text(
+                            {	text: size.toString(),
+                                fill: new Fill(
+                                {	color: '#fff'
+                                })
+                            })
+                        });
+                }
+            return [style];
+        }
+      });
+
+      clusters.set('name', data+'clusters');
+      spotLayer.set('name', data+'spotLayer');
+      spothLayer.set('name', data+'spothLayer');
+      this.map.addLayer(clusters);
+      this.map.addLayer(spotLayer);
+      this.map.addLayer(spothLayer);
+    })
+    Event.$on('DelCheckValue', (data)=>{
+      var layersToRemove = [];
+      var returnToRemove = [];
+      this.map.getLayers().forEach(function (layer) {
+          if (layer.get('name') != undefined && (layer.get('name') === data+'clusters'|| layer.get('name') === data+'spotLayer' || layer.get('name') === data+'spothLayer')) {
+              layersToRemove.push(layer);
+          }
+          if (layer.get('name') != undefined && (layer.get('name') === data+'spotLayer' || layer.get('name') === data+'spothLayer')) {
+              returnToRemove.push(layer);
+          }
+      });
+
+      var len = layersToRemove.length;
+      for(var i = 0; i < len; i++) {
+          this.map.removeLayer(layersToRemove[i]);
+      }
+      var u = [];
+      for(var i = 0; i < returnToRemove.length; i++) {
+        for (var j=0; j< returnToRemove[i].getSource().getFeatures().length; j++){
+            u.push(returnToRemove[i].getSource().getFeatures()[j]['values_']['spot']);
+        }
+      }
+      Event.$emit('delgetinfo', u);
+    })
+  }
 };
 </script>
 
 <style>
-#map{height:100%;}
+#map {
+  height:100%;
+}
 /*隐藏ol的一些自带元素*/
 .ol-attribution,.ol-zoom { display: none;}
 
