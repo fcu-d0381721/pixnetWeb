@@ -207,5 +207,7 @@ LEVEL 3. SETTINGS
   --toggleSize: 20px;
 }
 
-
+#checkBox {
+  margin: 4px;
+}
 </style>

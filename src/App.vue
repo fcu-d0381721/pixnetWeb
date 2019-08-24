@@ -13,7 +13,7 @@
         <hr>
         <div class="CheckBoxChoose">
           <div class="checkboxes">
-            <h4>旅遊區選擇：</h4>
+            <h3>旅遊區選擇：</h3>
             <checkBox/>
           </div>
           <div class="show">
@@ -27,9 +27,15 @@
     </div>
     <div class="center">
       <div class="centerTop">
+        <div class="centerleft">
+          <img class="logo" src="./assets/logo.png" alt="logo">
+        </div>
+        <div class="centerright">
+          <img class="logo" src="./assets/logo1.png" alt="logo">
+        </div>
       </div>
       <div class="centerBottom">
-        <olmap :btnName="btnName"/>
+        <olmap :btnName="btnName" on:="changehot"/>
       </div>
       <div class="centerEnd">
         <div id="knowlabel" class='legend-scale'>
@@ -45,21 +51,33 @@
       </div>
     </div>
     <div class="right">
-      
+      <div class="title">
+        <h2>行程規劃</h2>
+      </div>
+      <div class="content">
+        <div class="card todolist" v-for="(value, index) in lists">
+          <div class="ti">{{value}}</div>
+          <div class="btns">
+            <div class="btn" v-on:click="deletNote(index)">刪除</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 </template>
 
 <script>
+import Event from './bus.js';
 import boot from './assets/bootstrap.min.css';
-import olmap from './components/olmap.vue'
-import mySelect from './components/my-select.vue'
-import data from './assets/county.json'
-import checkBox from './components/checkBox'
-import hashTag from './components/hashTag'
-import navBar from './components/navBar'
-import show from './components/show'
+import olmap from './components/olmap.vue';
+import mySelect from './components/my-select.vue';
+import data from './assets/county.json';
+import checkBox from './components/checkBox';
+import hashTag from './components/hashTag';
+import navBar from './components/navBar';
+import show from './components/show';
+// import info from './components/info'
 
 let cities = data;
 
@@ -83,7 +101,8 @@ export default {
     return {
       townIndex: 0,
       areaIndex: 0,
-      btnName: ''
+      btnName: '',
+      lists: [],
     }
   },
   components: {
@@ -103,7 +122,19 @@ export default {
   }, methods: {
     changeMap: function(mapcode){
       this.btnName = mapcode
-    }
+    },
+    // changehot: function(data) {
+    //   console.log('success');
+    //   this.lists.push(data);
+    // },
+    deletNote: function(index) {
+      this.lists.splice(index, 1)
+    },
+  },created() {
+    Event.$on('changehot', (data)=>{
+      console.log(data);
+      this.lists.push(data);
+    })
   }
 }
 </script>
@@ -163,6 +194,8 @@ hr {
 }
 .checkboxes {
   flex:2;
+  height: 100%;
+  overflow-y: scroll;
 }
 .show {
   flex:7;
@@ -185,7 +218,29 @@ hr {
 .centerTop {
   flex:3;
   height: 100%;
+  margin: 0 10px;
+  display: flex;
+  flex-direction: row;
+  /* background-color: yellow; */
+}
+.centerleft {
   width: 100%;
+  height: 100%;
+  flex:2;
+  margin-right:3px;
+  text-align: center;
+}
+.centerright {
+  width: 100%;
+  height: 100%;
+  flex:2;
+  margin-left:3px;
+  text-align: center;
+}
+.logo{
+  /* width: 100%;  */
+  max-width:100%; 
+  max-height: 100%;
 }
 
 .centerBottom {
@@ -201,7 +256,28 @@ hr {
 
 .right {
   flex: 3;
-  background-color: white;
+  /* background-color: black; */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.title {
+  flex:2;
+  /* width: 100%; */
+  height:100%;
+  text-align: center;
+  background-color: #FED309;
+}
+.title h2 {
+  margin-top: 9%;
+}
+.content {
+  flex:12;
+  width: 100%;
+  height:100%;
+  text-align: center;
 }
 .legend-title{
   font-size: 15px;
@@ -235,6 +311,9 @@ ul.legend-labels li span {
   height: 15px;
   width: 100%;
   z-index:100;
+}
+.hide{
+  display: none !important;
 }
 
 </style>

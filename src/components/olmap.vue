@@ -1,10 +1,24 @@
 <template>
-    <div id="map" ref="rootmap"></div>
+    
+    <div id="map" ref="rootmap" >
+      <div id="el-dialog" class="hide">
+        <div class="up">
+          <img src="../assets/close.png" style="width: 30px;float: right;cursor: pointer;" title="关闭弹窗" v-on:click="close" class="close"/>
+          <img class="hold" src="https://img.theculturetrip.com/450x/wp-content/uploads/2015/11/5170574412_cc891c9188_z.jpg" alt="temple">
+        </div>
+        <div class="down">
+          <div class="infoname"><h3>{{infoname}}</h3></div>
+          <div class="infohot"><h3>45</h3></div>
+          <div class="nowhot">當前熱門程度</div>
+          <button type="button" class="btn btn-info posi" v-on:click="test">加入行程</button>
+        </div>
+      </div>
+    </div>
 </template>
 
 <script>
 
-import Event from '../bus.js'
+import Event from '../bus.js';
 import "ol/ol.css";
 import { Map, View } from "ol";
 import {Fill, Stroke, Style, Text} from 'ol/style.js';
@@ -28,9 +42,24 @@ export default {
       map: null,
       heatData: data,
       vSource3: null,
+      infoname: '月老廟',
+
     };
+  },methods: {
+    close: function(){
+      console.log("close");
+      // $("#el-dialog").addClass("hide");
+      const el = document.getElementById("el-dialog");
+      el.classList.add('hide');
+    },test: function(){
+      Event.$emit('changehot', this.infoname);
+    }
   },
   mounted() {
+    // $("#el-dialog").addClass("hide");
+    // $(".close").click(function(event) {
+    //     $("#el-dialog").addClass("hide");
+    // });
     var mapcontainer = this.$refs.rootmap;
 
     var osm = new TileLayer({
@@ -188,6 +217,16 @@ export default {
       this.map.addLayer(clusters);
       this.map.addLayer(spotLayer);
       this.map.addLayer(spothLayer);
+
+      this.map.on('click', function (e) {
+        console.log("apple");
+        const el = document.getElementById("el-dialog");
+        // if (addRemoveClass === 'addClass') {
+        //   el.classList.add(className);
+        // } else {
+          el.classList.remove('hide');
+        // }
+      });
     })
     Event.$on('DelCheckValue', (data)=>{
       var layersToRemove = [];
@@ -223,5 +262,54 @@ export default {
 }
 /*隐藏ol的一些自带元素*/
 .ol-attribution,.ol-zoom { display: none;}
+#el-dialog {
+  position: absolute;
+  bottom: 8%;
+  right:2%;
+  width: 23%;
+  height: 300px;
+  background-color: #e9ebee;
+  border: 1px solid #C6C6C6;
+  border-radius: 5px;
+  box-shadow: 2px 2px 5px #C6C6C6;
+  display: flex;
+  flex-direction: column;
+}
+.up {
+  flex:2;
+  height:100%;
+  width: 100%;
+}
+.hold {
+  height:100%;
+  width: 100%;
+}
+.close {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+}
+.down {
+  display: flex;
+  flex-direction: column;
+  flex:2;
+  height:100%;
+  width: 100%;
+}
+.infoname {
+  flex: 2;
+  height:100%;
+  text-align: center;
+}
+.infohot {
+  flex: 2;
+  height:100%;
+  text-align: center;
+}
+.nowhot {
+  flex: 2;
+  height:100%;
+  text-align: center;
+}
 
 </style>
