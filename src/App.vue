@@ -28,10 +28,11 @@
     <div class="center">
       <div class="centerTop">
         <div class="centerleft">
-          <img class="logo" src="./assets/logo.png" alt="logo">
-        </div>
+          <img class="logo" src="./assets/logo3.png" alt="logo">
+        <!-- </div>
         <div class="centerright">
-          <img class="logo" src="./assets/logo1.png" alt="logo">
+          <img class="logo" src="./assets/logo1.png" alt="logo"> -->
+
         </div>
       </div>
       <div class="centerBottom">
@@ -219,15 +220,15 @@ hr {
   flex:3;
   height: 100%;
   margin: 0 10px;
-  display: flex;
-  flex-direction: row;
+  /* display: flex; */
+  /* flex-direction: row; */
   /* background-color: yellow; */
 }
 .centerleft {
   width: 100%;
   height: 100%;
   flex:2;
-  margin-right:3px;
+  /* margin-right:3px; */
   text-align: center;
 }
 .centerright {
@@ -238,8 +239,8 @@ hr {
   text-align: center;
 }
 .logo{
-  /* width: 100%;  */
-  max-width:100%; 
+  width: 100%; 
+  /* max-width:100%;  */
   max-height: 100%;
 }
 
